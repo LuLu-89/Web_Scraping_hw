@@ -5,7 +5,7 @@ import scrape_mars
 # Setup app
 app = Flask(__name__)
 
-mongo = PyMongo(app, URI="mongodb://localhost:27017/mars_app")
+mongo = PyMongo(app, uri="mongodb://localhost:27017/mars_app")
 
 @app.route('/')
 def index ():
