@@ -7,7 +7,7 @@ import pymongo
 import time
 
 def init_browser():
-    executable_path = {'executable_path': 'chromedriver'}
+    executable_path = {'executable_path': '/Users/lucyly/Downloads/chromedriver'}
     return Browser('chrome', **executable_path, headless=False)
 
 # Scraping Mars news, images, weather, and facts... 
