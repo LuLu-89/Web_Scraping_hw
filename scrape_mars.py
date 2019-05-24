@@ -19,10 +19,8 @@ def scrape ():
     # Empty dictionary to plug everything into at the very end
     mars = {}
 
-    # Splinter
-    executable_path = {'executable_path': '/Users/lucyly/Downloads/chromedriver'}
-    browser = Browser('chrome', **executable_path, headless=False)
-
+    browser = init_browser()
+    
     # URL of page to be scraped
     news_url = 'https://mars.nasa.gov/news/'
 
@@ -43,8 +41,6 @@ def scrape ():
         print(news_title)
         print(news_p)
 
-    browser.quit()
-
     # Add news title and paragraph to dictionary
     mars['news_title'] = news_title
     mars['news_paragraph'] = news_p
@@ -56,18 +52,12 @@ def scrape ():
     # URL to be scraped
     images_url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
 
-    # Use splinter to navigate the site and find the image url for the current 
-    # Featured Mars Image and assign the url string to a variable called featured_image_url
-    executable_path = {'executable_path': '/Users/lucyly/Downloads/chromedriver'}
-    browser = Browser('chrome', **executable_path, headless=False)
-
     browser.visit(images_url)
     browser.find_by_css('ul.articles')
 
     image_soup = bs(browser.html, 'html.parser')
     image_src = image_soup.select('a.fancybox')[0]['data-fancybox-href']
     featured_image_url = 'https://www.jpl.nasa.gov/' + image_src
-    browser.quit()
 
     # Add featured image to dictionary
     mars['featured_image'] = featured_image_url
@@ -76,21 +66,28 @@ def scrape ():
     # Weather
     #-----------------------------------------
 
-    # URL of page to be scraped
-    weather_url = 'https://twitter.com/marswxreport?lang=en'
+    # Create variable to hold url
+    tweet_url = "https://twitter.com/marswxreport?lang=en"
 
     # Retrieve page with the requests module
-    weather_response = requests.get(weather_url)
-    # Create BeautifulSoup object
-    weather_soup = bs(weather_response.text)
+    browser.visit(tweet_url)
+    time.sleep(3)
 
-    # Retrieve weather tweet texts
-    mars_weather_tweet = weather_soup.select('div.js-tweet-text-container')
+    # Create HTML object
+    tweet_mars_html = browser.html
 
-    # Print tweets and add to MongoDB
-    for tweet in mars_weather_tweet: 
-        if tweet.text.strip().startswith('InSight'):
-            mars_weather = tweet.text.strip()
+    # Create BeautifulSoup object and parse with HTML parser
+    tweet_mars_soup = bs(tweet_mars_html, "html.parser")
+    time.sleep(3)
+
+    # Retrieve weather tweet
+    tweets = tweet_mars_soup.find_all("p")
+
+    for tweet in tweets:
+        # if the tweet contains "Sol" we know it is a tweet about weather
+        if 'Sol' in tweet.text:
+            mars_weather = tweet.text
+            break
 
     # Add weather to dictionary
     mars['mars_weather'] = mars_weather
@@ -117,10 +114,7 @@ def scrape ():
     #-----------------------------------------
     # Hemispheres
     #-----------------------------------------
-    # Splinter
-    executable_path = {'executable_path': '/Users/lucyly/Downloads/chromedriver'}
-    browser = Browser('chrome', **executable_path, headless=False)
-
+    
     # URL to be scraped: 
     hemi_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
 
@@ -143,7 +137,6 @@ def scrape ():
         img_url = 'https://astrogeology.usgs.gov'+ partial
         hemi_dict={"title":img_title,"img_url":img_url}
         hemisphere_image_urls.append(hemi_dict)
-        browser.back()
 
     # Append the dictionary with the image url string and the hemisphere title to a list. 
     # This list will contain one dictionary for each hemisphere.
@@ -154,15 +147,4 @@ def scrape ():
     # Add hemispheres to dictionary
     mars['mars_hemis'] = hemisphere_image_urls
 
-    #-----------------------------------------
-    # Dictionary of all data scraped to be returned
-    #-----------------------------------------
-    # mars = {
-    #     'News Title': news_title,
-    #     'News Teaser': news_p,
-    #     'Featured Image': featured_image_url,
-    #     'Mars Weather': mars_weather,
-    #     'Mars Facts': mars_html,
-    #     'Mars Hemispheres': hemisphere_image_urls
-    # }
     return mars
