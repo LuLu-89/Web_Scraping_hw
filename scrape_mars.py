@@ -31,7 +31,6 @@ def scrape ():
     news_soup = bs(html, "html.parser")
 
     # Retrieve news titles and paragraph texts
-
     time.sleep(2)
     news_title = news_soup.select('.content_title')[0].text
     news_p = news_soup.select('.article_teaser_body')[0].text
